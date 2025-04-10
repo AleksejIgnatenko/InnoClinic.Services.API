@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
-using InnoClinic.Services.Core.Models;
+using InnoClinic.Services.Core.Models.SpecializationModel;
 
 namespace InnoClinic.Services.Application.Validators
 {
-    internal class SpecializationValidator : AbstractValidator<SpecializationModel>
+    internal class SpecializationValidator : AbstractValidator<SpecializationEntity>
     {
         public SpecializationValidator()
         {

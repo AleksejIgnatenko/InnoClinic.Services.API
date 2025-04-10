@@ -1,11 +1,11 @@
 ﻿using InnoClinic.Services.Core.Abstractions;
-using InnoClinic.Services.Core.Models;
+using InnoClinic.Services.Core.Models.ServiceCategoryModels;
 
 namespace InnoClinic.Services.DataAccess.Repositories
 {
-    public interface IServiceCategoryRepository : IRepositoryBase<ServiceCategoryModel>
+    public interface IServiceCategoryRepository : IRepositoryBase<ServiceCategoryEntity>
     {
-        Task<IEnumerable<ServiceCategoryModel>> GetAllAsync();
-        Task<ServiceCategoryModel> GetByIdAsync(Guid id);
+        Task<IEnumerable<ServiceCategoryEntity>> GetAllAsync();
+        Task<ServiceCategoryEntity> GetByIdAsync(Guid id);
     }
 }

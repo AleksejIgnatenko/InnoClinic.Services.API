@@ -1,9 +1,11 @@
-﻿using InnoClinic.Services.API.Contracts;
-using InnoClinic.Services.Application.Services;
+﻿using InnoClinic.Services.Application.Services;
+using InnoClinic.Services.Core.Models.ServiceCategoryModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InnoClinic.Services.API.Controllers
 {
+    [Authorize(Roles = "Receptionist")]
     [ApiController]
     [Route("api/[controller]")]
     public class ServiceCategoryController : ControllerBase
@@ -23,6 +25,7 @@ namespace InnoClinic.Services.API.Controllers
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult> GetAllServiceCategoryAsync()
         {

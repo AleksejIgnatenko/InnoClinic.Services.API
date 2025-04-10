@@ -1,23 +1,23 @@
 ﻿using InnoClinic.Services.Core.Exceptions;
-using InnoClinic.Services.Core.Models;
+using InnoClinic.Services.Core.Models.ServiceCategoryModels;
 using InnoClinic.Services.DataAccess.Context;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace InnoClinic.Services.DataAccess.Repositories
 {
-    public class ServiceCategoryRepository : RepositoryBase<ServiceCategoryModel>, IServiceCategoryRepository
+    public class ServiceCategoryRepository : RepositoryBase<ServiceCategoryEntity>, IServiceCategoryRepository
     {
         public ServiceCategoryRepository(InnoClinicServicesDbContext context) : base(context) { }
 
-        public async Task<IEnumerable<ServiceCategoryModel>> GetAllAsync()
+        public async Task<IEnumerable<ServiceCategoryEntity>> GetAllAsync()
         {
             return await _context.ServiceCategories
                 .AsNoTracking()
                 .ToListAsync();
         }
 
-        public async Task<ServiceCategoryModel> GetByIdAsync(Guid id)
+        public async Task<ServiceCategoryEntity> GetByIdAsync(Guid id)
         {
             return await _context.ServiceCategories
             .FirstOrDefaultAsync(s => s.Id.Equals(id))

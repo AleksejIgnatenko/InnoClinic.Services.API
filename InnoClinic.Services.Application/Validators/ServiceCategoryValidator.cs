@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
-using InnoClinic.Services.Core.Models;
+using InnoClinic.Services.Core.Models.ServiceCategoryModels;
 
 namespace InnoClinic.Services.Application.Validators
 {
-    internal class ServiceCategoryValidator : AbstractValidator<ServiceCategoryModel>
+    internal class ServiceCategoryValidator : AbstractValidator<ServiceCategoryEntity>
     {
         public ServiceCategoryValidator()
         {

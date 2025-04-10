@@ -1,4 +1,4 @@
-﻿using InnoClinic.Services.Core.Models;
+﻿using InnoClinic.Services.Core.Models.MedicalServiceModels;
 
 namespace InnoClinic.Services.Application.Services
 {
@@ -6,7 +6,10 @@ namespace InnoClinic.Services.Application.Services
     {
         Task CreateMedicalServiceAsync(Guid serviceCategoryId, string serviceName, decimal price, Guid specializationId, bool isActive);
         Task DeleteMedicalServiceAsync(Guid id);
-        Task<IEnumerable<MedicalServiceModel>> GetAllMedicalServiceAsync();
+        Task<IEnumerable<MedicalServiceEntity>> GetAllMedicalServiceAsync();
+        Task<MedicalServiceEntity> GetMedicalServiceByIdAsync(Guid id);
+        Task<IEnumerable<MedicalServiceEntity>> GetAllActiveMedicalServicesAsync();
         Task UpdateMedicalServiceAsync(Guid id, Guid serviceCategoryId, string serviceName, decimal price, Guid specializationId, bool isActive);
+        Task<IEnumerable<MedicalServiceEntity>> GetServicesBySpecializationIdAsync(Guid specializationId);
     }
 }

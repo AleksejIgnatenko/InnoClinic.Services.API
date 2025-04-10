@@ -1,5 +1,5 @@
 ﻿using InnoClinic.Services.Core.Exceptions;
-using InnoClinic.Services.Core.Models;
+using InnoClinic.Services.Core.Models.ServiceCategoryModels;
 using InnoClinic.Services.DataAccess.Repositories;
 
 namespace InnoClinic.Services.Application.Services
@@ -17,7 +17,7 @@ namespace InnoClinic.Services.Application.Services
 
         public async Task CreateServiceCategoryAsync(string categoryName, int timeSlotSize)
         {
-            var serviceCategory = new ServiceCategoryModel
+            var serviceCategory = new ServiceCategoryEntity
             {
                 Id = Guid.NewGuid(),
                 CategoryName = categoryName,
@@ -34,14 +34,14 @@ namespace InnoClinic.Services.Application.Services
             await _serviceCategoryRepository.CreateAsync(serviceCategory);
         }
 
-        public async Task<IEnumerable<ServiceCategoryModel>> GetAllServiceCategoryAsync()
+        public async Task<IEnumerable<ServiceCategoryEntity>> GetAllServiceCategoryAsync()
         {
             return await _serviceCategoryRepository.GetAllAsync();
         }
 
         public async Task UpdateServiceCategoryAsync(Guid id, string categoryName, int timeSlotSize)
         {
-            var serviceCategory = new ServiceCategoryModel
+            var serviceCategory = new ServiceCategoryEntity
             {
                 Id = id,
                 CategoryName = categoryName,
