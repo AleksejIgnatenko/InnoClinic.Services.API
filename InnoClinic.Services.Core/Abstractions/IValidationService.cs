@@ -1,11 +1,13 @@
-﻿using InnoClinic.Services.Core.Models;
+﻿using InnoClinic.Services.Core.Models.MedicalServiceModels;
+using InnoClinic.Services.Core.Models.ServiceCategoryModels;
+using InnoClinic.Services.Core.Models.SpecializationModel;
 
 namespace InnoClinic.Services.Application.Services
 {
     public interface IValidationService
     {
-        Dictionary<string, string> Validation(SpecializationModel specializationModel);
-        Dictionary<string, string> Validation(ServiceCategoryModel serviceCategoryModel);
-        Dictionary<string, string> Validation(MedicalServiceModel medicalServiceModel);
+        Dictionary<string, string> Validation(SpecializationEntity specializationModel);
+        Dictionary<string, string> Validation(ServiceCategoryEntity serviceCategoryModel);
+        Dictionary<string, string> Validation(MedicalServiceEntity medicalServiceModel);
     }
 }

@@ -1,6 +1,6 @@
-﻿namespace InnoClinic.Services.Core.Dto
+﻿namespace InnoClinic.Services.Core.Models.SpecializationModel
 {
-    public class SpecializationDto
+    public class SpecializationEntity
     {
         public Guid Id { get; set; }
         public string SpecializationName { get; set; } = string.Empty;

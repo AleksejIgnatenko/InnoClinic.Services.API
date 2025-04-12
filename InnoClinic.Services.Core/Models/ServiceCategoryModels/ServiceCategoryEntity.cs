@@ -1,6 +1,6 @@
-﻿namespace InnoClinic.Services.Core.Models
+﻿namespace InnoClinic.Services.Core.Models.ServiceCategoryModels
 {
-    public class ServiceCategoryModel
+    public class ServiceCategoryEntity
     {
         public Guid Id { get; set; }
         public string CategoryName { get; set; } = string.Empty;

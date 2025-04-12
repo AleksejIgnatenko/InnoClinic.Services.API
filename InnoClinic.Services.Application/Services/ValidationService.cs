@@ -1,12 +1,14 @@
 ﻿using FluentValidation.Results;
 using InnoClinic.Services.Application.Validators;
-using InnoClinic.Services.Core.Models;
+using InnoClinic.Services.Core.Models.MedicalServiceModels;
+using InnoClinic.Services.Core.Models.ServiceCategoryModels;
+using InnoClinic.Services.Core.Models.SpecializationModel;
 
 namespace InnoClinic.Services.Application.Services
 {
     public class ValidationService : IValidationService
     {
-        public Dictionary<string, string> Validation(SpecializationModel specializationModel)
+        public Dictionary<string, string> Validation(SpecializationEntity specializationModel)
         {
             Dictionary<string, string> errors = new Dictionary<string, string>();
 
@@ -23,7 +25,7 @@ namespace InnoClinic.Services.Application.Services
             return errors;
         }
 
-        public Dictionary<string, string> Validation(ServiceCategoryModel serviceCategoryModel)
+        public Dictionary<string, string> Validation(ServiceCategoryEntity serviceCategoryModel)
         {
             Dictionary<string, string> errors = new Dictionary<string, string>();
 
@@ -40,7 +42,7 @@ namespace InnoClinic.Services.Application.Services
             return errors;
         }
 
-        public Dictionary<string, string> Validation(MedicalServiceModel medicalServiceModel)
+        public Dictionary<string, string> Validation(MedicalServiceEntity medicalServiceModel)
         {
             Dictionary<string, string> errors = new Dictionary<string, string>();
 

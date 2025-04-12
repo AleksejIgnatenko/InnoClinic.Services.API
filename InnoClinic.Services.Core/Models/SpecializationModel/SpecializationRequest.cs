@@ -1,4 +1,4 @@
-﻿namespace InnoClinic.Services.API.Contracts
+﻿namespace InnoClinic.Services.Core.Models.SpecializationModel
 {
     public record SpecializationRequest(
         string SpecializationName,

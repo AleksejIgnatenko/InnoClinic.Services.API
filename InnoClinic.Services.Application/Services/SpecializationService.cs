@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
-using InnoClinic.Services.Core.Dto;
 using InnoClinic.Services.Core.Exceptions;
-using InnoClinic.Services.Core.Models;
+using InnoClinic.Services.Core.Models.SpecializationModel;
 using InnoClinic.Services.DataAccess.Repositories;
 using InnoClinic.Services.Infrastructure.RabbitMQ;
 
@@ -24,7 +23,7 @@ namespace InnoClinic.Services.Application.Services
 
         public async Task CreateSpecializationAsync(string specializationName, bool isActive)
         {
-            var specialization = new SpecializationModel
+            var specialization = new SpecializationEntity
             {
                 Id = Guid.NewGuid(),
                 SpecializationName = specializationName,
@@ -44,14 +43,24 @@ namespace InnoClinic.Services.Application.Services
             await _rabbitMQService.PublishMessageAsync(specialization, RabbitMQQueues.ADD_SPECIALIZATION_QUEUE);
         }
 
-        public async Task<IEnumerable<SpecializationModel>> GetAllSpecializationAsync()
+        public async Task<IEnumerable<SpecializationEntity>> GetAllSpecializationsAsync()
         {
             return await _specializationRepository.GetAllAsync();
         }
 
+        public async Task<SpecializationEntity> GetSpecializationByIdAsync(Guid id)
+        {
+            return await _specializationRepository.GetByIdAsync(id);
+        }
+
+        public async Task<IEnumerable<SpecializationEntity>> GetAllActiveSpecializationsAsync()
+        {
+            return await _specializationRepository.GetAllActiveSpecializationsAsync();
+        }
+
         public async Task UpdateSpecializationAsync(Guid id, string specializationName, bool isActive)
         {
-            var specialization = new SpecializationModel
+            var specialization = new SpecializationEntity
             {
                 Id = id,
                 SpecializationName = specializationName,

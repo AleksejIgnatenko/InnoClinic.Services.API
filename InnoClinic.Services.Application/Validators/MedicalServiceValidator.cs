@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
-using InnoClinic.Services.Core.Models;
+using InnoClinic.Services.Core.Models.MedicalServiceModels;
 
 namespace InnoClinic.Services.Application.Validators
 {
-    internal class MedicalServiceValidator : AbstractValidator<MedicalServiceModel>
+    internal class MedicalServiceValidator : AbstractValidator<MedicalServiceEntity>
     {
         public MedicalServiceValidator()
         {

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using InnoClinic.Services.Core.Dto;
-using InnoClinic.Services.Core.Models;
+using InnoClinic.Services.Core.Models.MedicalServiceModels;
+using InnoClinic.Services.Core.Models.SpecializationModel;
 
 namespace InnoClinic.Services.Application.MapperProfiles
 {
@@ -8,8 +8,8 @@ namespace InnoClinic.Services.Application.MapperProfiles
     {
         public MapperProfiles()
         {
-            CreateMap<SpecializationModel, SpecializationDto>();
-            CreateMap<MedicalServiceModel, MedicalServiceDto>();
+            CreateMap<SpecializationEntity, SpecializationDto>();
+            CreateMap<MedicalServiceEntity, MedicalServiceDto>();
         }
     }
 }

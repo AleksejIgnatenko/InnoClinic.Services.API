@@ -1,9 +1,11 @@
-﻿using InnoClinic.Services.API.Contracts;
-using InnoClinic.Services.Application.Services;
+﻿using InnoClinic.Services.Application.Services;
+using InnoClinic.Services.Core.Models.SpecializationModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InnoClinic.Services.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class SpecializationController : ControllerBase
@@ -15,6 +17,7 @@ namespace InnoClinic.Services.API.Controllers
             _specializationService = specializationService;
         }
 
+        [Authorize(Roles = "Receptionist")]
         [HttpPost]
         public async Task<ActionResult> CreateSpecializationAsync([FromBody] SpecializationRequest specializationRequest)
         {
@@ -23,12 +26,28 @@ namespace InnoClinic.Services.API.Controllers
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult> GetAllSpecializationAsync()
+        public async Task<ActionResult> GetAllSpecializationsAsync()
         {
-            return Ok(await _specializationService.GetAllSpecializationAsync());
+            return Ok(await _specializationService.GetAllSpecializationsAsync());
         }
 
+        [AllowAnonymous]
+        [HttpGet("{id}")]
+        public async Task<ActionResult> GetSpecializationByIdAsync(Guid id)
+        {
+            return Ok(await _specializationService.GetSpecializationByIdAsync(id));
+        }
+
+        [AllowAnonymous]
+        [HttpGet("all-active-specializations")]
+        public async Task<ActionResult> GetAllActiveSpecializationsAsync()
+        {
+            return Ok(await _specializationService.GetAllActiveSpecializationsAsync());
+        }
+
+        [Authorize(Roles = "Receptionist")]
         [HttpPut("{id:guid}")]
         public async Task<ActionResult> UpdateSpecializationAsync(Guid id, [FromBody] SpecializationRequest specializationRequest)
         {
@@ -37,6 +56,7 @@ namespace InnoClinic.Services.API.Controllers
             return Ok();
         }
 
+        [Authorize(Roles = "Receptionist")]
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult> DeleteSpecializationAsync(Guid id)
         {

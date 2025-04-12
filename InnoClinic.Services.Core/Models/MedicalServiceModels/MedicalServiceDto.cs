@@ -1,4 +1,4 @@
-﻿namespace InnoClinic.Services.Core.Dto
+﻿namespace InnoClinic.Services.Core.Models.MedicalServiceModels
 {
     public class MedicalServiceDto
     {

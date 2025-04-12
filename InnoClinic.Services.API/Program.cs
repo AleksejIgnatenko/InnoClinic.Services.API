@@ -1,3 +1,4 @@
+using InnoClinic.Services.API.Extensions;
 using InnoClinic.Services.API.Middlewares;
 using InnoClinic.Services.Application.MapperProfiles;
 using InnoClinic.Services.Application.Services;
@@ -10,12 +11,10 @@ using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .CreateLogger();
+    .CreateSerilog();
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -26,6 +25,9 @@ builder.Services.AddDbContext<InnoClinicServicesDbContext>(options =>
 
 builder.Services.Configure<RabbitMQSetting>(
     builder.Configuration.GetSection("RabbitMQ"));
+
+// Load JWT settings
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<IRabbitMQService, RabbitMQService>();
@@ -42,6 +44,13 @@ builder.Services.AddScoped<IMedicalServiceRepository, MedicalServiceRepository>(
 builder.Services.AddAutoMapper(typeof(MapperProfiles));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var rabbitMQService = services.GetRequiredService<IRabbitMQService>();
+    await rabbitMQService.CreateQueuesAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -64,8 +73,9 @@ app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseCors(x =>
 {
     x.WithHeaders().AllowAnyHeader();
-    x.WithOrigins("http://localhost:4000");
+    x.WithOrigins("http://localhost:4000", "http://localhost:4001");
     x.WithMethods().AllowAnyMethod();
+    x.AllowCredentials();
 });
 
 app.Run();

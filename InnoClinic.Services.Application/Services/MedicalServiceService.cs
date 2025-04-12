@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using AutoMapper;
-using InnoClinic.Services.Core.Dto;
+﻿using AutoMapper;
 using InnoClinic.Services.Core.Exceptions;
-using InnoClinic.Services.Core.Models;
+using InnoClinic.Services.Core.Models.MedicalServiceModels;
 using InnoClinic.Services.DataAccess.Repositories;
 using InnoClinic.Services.Infrastructure.RabbitMQ;
 
@@ -32,7 +30,7 @@ namespace InnoClinic.Services.Application.Services
             var serviceCategory = await _serviceCategoryRepository.GetByIdAsync(serviceCategoryId);
             var specialization = await _specificationRepository.GetByIdAsync(specializationId);
 
-            var medicalService = new MedicalServiceModel
+            var medicalService = new MedicalServiceEntity
             {
                 Id = Guid.NewGuid(),
                 ServiceCategory = serviceCategory,
@@ -55,9 +53,24 @@ namespace InnoClinic.Services.Application.Services
             await _rabbitMQService.PublishMessageAsync(medicalServiceDto, RabbitMQQueues.ADD_MEDICAL_SERVICE_QUEUE);
         }
 
-        public async Task<IEnumerable<MedicalServiceModel>> GetAllMedicalServiceAsync()
+        public async Task<IEnumerable<MedicalServiceEntity>> GetAllMedicalServiceAsync()
         {
             return await _medicalServiceRepository.GetAllAsync();
+        }
+
+        public async Task<MedicalServiceEntity> GetMedicalServiceByIdAsync(Guid id)
+        {
+            return await _medicalServiceRepository.GetByIdAsync(id);
+        }
+
+        public async Task<IEnumerable<MedicalServiceEntity>> GetServicesBySpecializationIdAsync(Guid specializationId)
+        {
+            return await _medicalServiceRepository.GetBySpecializationIdAsync(specializationId);
+        }
+
+        public async Task<IEnumerable<MedicalServiceEntity>> GetAllActiveMedicalServicesAsync()
+        {
+            return await _medicalServiceRepository.GetAllActiveMedicalServicesAsync();
         }
 
         public async Task UpdateMedicalServiceAsync(Guid id, Guid serviceCategoryId, string serviceName, decimal price, Guid specializationId, bool isActive)
@@ -65,7 +78,7 @@ namespace InnoClinic.Services.Application.Services
             var serviceCategory = await _serviceCategoryRepository.GetByIdAsync(serviceCategoryId);
             var specialization = await _specificationRepository.GetByIdAsync(specializationId);
 
-            var medicalService = new MedicalServiceModel
+            var medicalService = new MedicalServiceEntity
             {
                 Id = id,
                 ServiceCategory = serviceCategory,
