@@ -1,13 +1,22 @@
-﻿using InnoClinic.Services.Core.Abstractions;
-using InnoClinic.Services.Core.Models.MedicalServiceModels;
+﻿using InnoClinic.Services.Core.Models.MedicalServiceModels;
 
-namespace InnoClinic.Services.DataAccess.Repositories
+namespace InnoClinic.Services.Core.Abstractions;
+
+/// <summary>
+/// Interface for the medical service repository.
+/// </summary>
+public interface IMedicalServiceRepository : IBaseRepository<MedicalServiceEntity>
 {
-    public interface IMedicalServiceRepository : IRepositoryBase<MedicalServiceEntity>
-    {
-        Task<IEnumerable<MedicalServiceEntity>> GetAllAsync();
-        Task<IEnumerable<MedicalServiceEntity>> GetAllActiveMedicalServicesAsync();
-        Task<MedicalServiceEntity> GetByIdAsync(Guid id);
-        Task<IEnumerable<MedicalServiceEntity>> GetBySpecializationIdAsync(Guid specializationId);
-    }
+    /// <summary>
+    /// Retrieves all active medical services asynchronously.
+    /// </summary>
+    /// <returns>A collection of all active medical services.</returns>
+    Task<IEnumerable<MedicalServiceEntity>> GetAllActiveMedicalServicesAsync();
+
+    /// <summary>
+    /// Retrieves medical services by specialization ID asynchronously.
+    /// </summary>
+    /// <param name="specializationId">The ID of the specialization to filter by.</param>
+    /// <returns>A collection of medical services associated with the specialization ID.</returns>
+    Task<IEnumerable<MedicalServiceEntity>> GetBySpecializationIdAsync(Guid specializationId);
 }

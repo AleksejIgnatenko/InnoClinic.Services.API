@@ -1,9 +1,17 @@
-﻿namespace InnoClinic.Services.Core.Models.ServiceCategoryModels
+﻿namespace InnoClinic.Services.Core.Models.ServiceCategoryModels;
+
+/// <summary>
+/// Represents a service category entity.
+/// </summary>
+public class ServiceCategoryEntity : EntityBase
 {
-    public class ServiceCategoryEntity
-    {
-        public Guid Id { get; set; }
-        public string CategoryName { get; set; } = string.Empty;
-        public int TimeSlotSize { get; set; }
-    }
+    /// <summary>
+    /// Gets or sets the name of the category.
+    /// </summary>
+    public string CategoryName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the time slot size for the category.
+    /// </summary>
+    public int TimeSlotSize { get; set; }
 }

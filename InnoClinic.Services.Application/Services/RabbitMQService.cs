@@ -1,56 +1,71 @@
 ﻿using System.Text;
-using InnoClinic.Services.Infrastructure.RabbitMQ;
+using InnoClinic.Services.Core.Abstractions;
+using InnoClinic.Services.Infrastructure.Enums.Queues;
+using InnoClinic.Services.Infrastructure.Options.RabbitMQ;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 
-namespace InnoClinic.Services.Application.Services
+namespace InnoClinic.Services.Application.Services;
+
+/// <summary>
+/// Service for interacting with RabbitMQ for queue management and message publishing.
+/// </summary>
+public class RabbitMQService : IRabbitMQService
 {
-    public class RabbitMQService : IRabbitMQService
+    private readonly RabbitMQOptions _rabbitMqOptions;
+    private readonly ConnectionFactory _factory;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RabbitMQService"/> class.
+    /// </summary>
+    /// <param name="rabbitMqOptions">The RabbitMQ configuration options.</param>
+    public RabbitMQService(IOptions<RabbitMQOptions> rabbitMqOptions)
     {
-        private readonly RabbitMQSetting _rabbitMqSetting;
-        private readonly ConnectionFactory _factory;
+        _rabbitMqOptions = rabbitMqOptions.Value;
 
-        public RabbitMQService(IOptions<RabbitMQSetting> rabbitMqSetting)
+        _factory = new ConnectionFactory
         {
-            _rabbitMqSetting = rabbitMqSetting.Value;
+            HostName = _rabbitMqOptions.HostName,
+            UserName = _rabbitMqOptions.UserName,
+            Password = _rabbitMqOptions.Password
+        };
+    }
 
-            _factory = new ConnectionFactory
-            {
-                HostName = _rabbitMqSetting.HostName,
-                UserName = _rabbitMqSetting.UserName,
-                Password = _rabbitMqSetting.Password
-            };
-        }
+    /// <summary>
+    /// Creates the necessary queues for the offices.
+    /// </summary>
+    public async Task CreateQueuesAsync()
+    {
+        using var connection = _factory.CreateConnection();
+        using var channel = connection.CreateModel();
 
-        public async Task CreateQueuesAsync()
+        await Task.Run(() =>
         {
-            using (var connection = _factory.CreateConnection())
-            using (var channel = connection.CreateModel())
-            {
-                await Task.Run(() =>
-                {
-                    channel.QueueDeclare(RabbitMQQueues.ADD_SPECIALIZATION_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
-                    channel.QueueDeclare(RabbitMQQueues.UPDATE_SPECIALIZATION_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
-                    channel.QueueDeclare(RabbitMQQueues.DELETE_SPECIALIZATION_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
+            channel.QueueDeclare(SpecializationQueuesEnum.AddSpecialization.ToString(), durable: false, exclusive: false, autoDelete: false, arguments: null);
+            channel.QueueDeclare(SpecializationQueuesEnum.UpdateSpecialization.ToString(), durable: false, exclusive: false, autoDelete: false, arguments: null);
+            channel.QueueDeclare(SpecializationQueuesEnum.DeleteSpecialization.ToString(), durable: false, exclusive: false, autoDelete: false, arguments: null);
 
-                    channel.QueueDeclare(RabbitMQQueues.ADD_MEDICAL_SERVICE_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
-                    channel.QueueDeclare(RabbitMQQueues.UPDATE_MEDICAL_SERVICE_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
-                    channel.QueueDeclare(RabbitMQQueues.DELETE_MEDICAL_SERVICE_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
-                });
-            }
-        }
+            channel.QueueDeclare(MedicalServiceQueuesEnum.AddMedicalService.ToString(), durable: false, exclusive: false, autoDelete: false, arguments: null);
+            channel.QueueDeclare(MedicalServiceQueuesEnum.UpdateMedicalService.ToString(), durable: false, exclusive: false, autoDelete: false, arguments: null);
+            channel.QueueDeclare(MedicalServiceQueuesEnum.DeleteMedicalService.ToString(), durable: false, exclusive: false, autoDelete: false, arguments: null);
+        });
+    }
 
-        public async Task PublishMessageAsync(object obj, string queueName)
-        {
-            using var connection = _factory.CreateConnection();
-            using var channel = connection.CreateModel();
-            channel.QueueDeclare(queue: queueName, durable: false, exclusive: false, autoDelete: false, arguments: null);
+    /// <summary>
+    /// Publishes a message to a specified queue.
+    /// </summary>
+    /// <param name="obj">The object to be published as a message.</param>
+    /// <param name="queueName">The name of the queue to publish the message to.</param>
+    public async Task PublishMessageAsync(object obj, string queueName)
+    {
+        using var connection = _factory.CreateConnection();
+        using var channel = connection.CreateModel();
+        channel.QueueDeclare(queue: queueName, durable: false, exclusive: false, autoDelete: false, arguments: null);
 
-            var messageJson = JsonConvert.SerializeObject(obj);
-            var body = Encoding.UTF8.GetBytes(messageJson);
+        var messageJson = JsonConvert.SerializeObject(obj);
+        var body = Encoding.UTF8.GetBytes(messageJson);
 
-            await Task.Run(() => channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: null, body: body));
-        }
+        await Task.Run(() => channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: null, body: body));
     }
 }

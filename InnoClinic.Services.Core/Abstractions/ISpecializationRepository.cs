@@ -1,12 +1,15 @@
-﻿using InnoClinic.Services.Core.Abstractions;
-using InnoClinic.Services.Core.Models.SpecializationModel;
+﻿using InnoClinic.Services.Core.Models.SpecializationModel;
 
-namespace InnoClinic.Services.DataAccess.Repositories
+namespace InnoClinic.Services.Core.Abstractions;
+
+/// <summary>
+/// Interface for the specialization repository.
+/// </summary>
+public interface ISpecializationRepository : IBaseRepository<SpecializationEntity>
 {
-    public interface ISpecializationRepository : IRepositoryBase<SpecializationEntity>
-    {
-        Task<IEnumerable<SpecializationEntity>> GetAllAsync();
-        Task<IEnumerable<SpecializationEntity>> GetAllActiveSpecializationsAsync();
-        Task<SpecializationEntity> GetByIdAsync(Guid id);
-    }
+    /// <summary>
+    /// Retrieves all active specializations asynchronously.
+    /// </summary>
+    /// <returns>A collection of all active specializations.</returns>
+    Task<IEnumerable<SpecializationEntity>> GetAllActiveSpecializationsAsync();
 }

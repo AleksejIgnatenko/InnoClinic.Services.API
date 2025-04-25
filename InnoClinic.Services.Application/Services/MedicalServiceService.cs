@@ -1,113 +1,109 @@
 ﻿using AutoMapper;
-using InnoClinic.Services.Core.Exceptions;
+using InnoClinic.Services.Core.Abstractions;
 using InnoClinic.Services.Core.Models.MedicalServiceModels;
-using InnoClinic.Services.DataAccess.Repositories;
-using InnoClinic.Services.Infrastructure.RabbitMQ;
+using InnoClinic.Services.Infrastructure.Enums.Queues;
 
-namespace InnoClinic.Services.Application.Services
+namespace InnoClinic.Services.Application.Services;
+
+/// <summary>
+/// Service for managing medical service entities including creation, retrieval, updating, and deletion operations.
+/// </summary>
+/// <remarks>
+/// Initializes a new instance of the <see cref="MedicalServiceService"/> class.
+/// </remarks>
+/// <param name="serviceCategoryRepository">The service category repository for data access.</param>
+/// <param name="specializatRepository">The specialization repository for data access.</param>
+/// <param name="medicalServiceRepository">The medical service repository for data access.</param>
+/// <param name="rabbitMQService">The RabbitMQ service for message publishing.</param>
+/// <param name="mapper">The mapper for object mapping.</param>
+public class MedicalServiceService(IServiceCategoryRepository serviceCategoryRepository, ISpecializationRepository specializatRepository, IMedicalServiceRepository medicalServiceRepository, IRabbitMQService rabbitMQService, IMapper mapper) : IMedicalServiceService
 {
-    public class MedicalServiceService : IMedicalServiceService
+    private readonly IServiceCategoryRepository _serviceCategoryRepository = serviceCategoryRepository;
+    private readonly ISpecializationRepository _specializatRepository = specializatRepository;
+    private readonly IMedicalServiceRepository _medicalServiceRepository = medicalServiceRepository;
+    private readonly IRabbitMQService _rabbitMQService = rabbitMQService;
+    private readonly IMapper _mapper = mapper;
+
+    /// <summary>
+    /// Creates a new medical service based on the provided medical service request.
+    /// </summary>
+    public async Task CreateMedicalServiceAsync(MedicalServiceRequest medicalServiceRequest)
     {
-        private readonly IServiceCategoryRepository _serviceCategoryRepository;
-        private readonly ISpecializationRepository _specificationRepository;
-        private readonly IMedicalServiceRepository _medicalServiceRepository;
-        private readonly IValidationService _validationService;
-        private readonly IRabbitMQService _rabbitMQService;
-        private readonly IMapper _mapper;
+        var serviceCategory = await _serviceCategoryRepository.GetByIdAsync(medicalServiceRequest.ServiceCategoryId);
+        var specialization = await _specializatRepository.GetByIdAsync(medicalServiceRequest.SpecializationId);
 
-        public MedicalServiceService(IServiceCategoryRepository serviceCategoryRepository, IValidationService validationService, ISpecializationRepository specificationRepository, IMedicalServiceRepository medicalServiceRepository, IRabbitMQService rabbitMQService, IMapper mapper)
-        {
-            _serviceCategoryRepository = serviceCategoryRepository;
-            _validationService = validationService;
-            _specificationRepository = specificationRepository;
-            _medicalServiceRepository = medicalServiceRepository;
-            _rabbitMQService = rabbitMQService;
-            _mapper = mapper;
-        }
+        var medicalService = _mapper.Map<MedicalServiceEntity>(medicalServiceRequest);
+        medicalService.ServiceCategory = serviceCategory;
+        medicalService.Specialization = specialization;
 
-        public async Task CreateMedicalServiceAsync(Guid serviceCategoryId, string serviceName, decimal price, Guid specializationId, bool isActive)
-        {
-            var serviceCategory = await _serviceCategoryRepository.GetByIdAsync(serviceCategoryId);
-            var specialization = await _specificationRepository.GetByIdAsync(specializationId);
+        await _medicalServiceRepository.CreateAsync(medicalService);
 
-            var medicalService = new MedicalServiceEntity
-            {
-                Id = Guid.NewGuid(),
-                ServiceCategory = serviceCategory,
-                ServiceName = serviceName,
-                Price = price,
-                Specialization = specialization,
-                IsActive = isActive
-            };
+        var medicalServiceDto = _mapper.Map<MedicalServiceDto>(medicalService);
+        await _rabbitMQService.PublishMessageAsync(medicalServiceDto, MedicalServiceQueuesEnum.AddMedicalService.ToString());
+    }
 
-            var validationErrors = _validationService.Validation(medicalService);
+    /// <summary>
+    /// Retrieves all medical service.
+    /// </summary>
+    public async Task<IEnumerable<MedicalServiceEntity>> GetAllMedicalServiceAsync()
+    {
+        return await _medicalServiceRepository.GetAllAsync();
+    }
 
-            if (validationErrors.Count != 0)
-            {
-                throw new ValidationException(validationErrors);
-            }
+    /// <summary>
+    /// Retrieves all active medical service.
+    /// </summary>
+    public async Task<IEnumerable<MedicalServiceEntity>> GetAllActiveMedicalServicesAsync()
+    {
+        return await _medicalServiceRepository.GetAllActiveMedicalServicesAsync();
+    }
 
-            await _medicalServiceRepository.CreateAsync(medicalService);
+    /// <summary>
+    /// Retrieves an medical service by its unique identifier.
+    /// </summary>
+    public async Task<MedicalServiceEntity> GetMedicalServiceByIdAsync(Guid id)
+    {
+        return await _medicalServiceRepository.GetByIdAsync(id);
+    }
 
-            var medicalServiceDto = _mapper.Map<MedicalServiceDto>(medicalService);
-            await _rabbitMQService.PublishMessageAsync(medicalServiceDto, RabbitMQQueues.ADD_MEDICAL_SERVICE_QUEUE);
-        }
+    /// <summary>
+    /// Retrieves all medical services associated with a specific specialization Id asynchronously.
+    /// </summary>
+    /// <param name="specializationId">The ID of the specialization to filter the medical services by.</param>
+    /// <returns>A collection of medical services associated with the specified specialization ID.</returns>
+    public async Task<IEnumerable<MedicalServiceEntity>> GetServicesBySpecializationIdAsync(Guid specializationId)
+    {
+        return await _medicalServiceRepository.GetBySpecializationIdAsync(specializationId);
+    }
 
-        public async Task<IEnumerable<MedicalServiceEntity>> GetAllMedicalServiceAsync()
-        {
-            return await _medicalServiceRepository.GetAllAsync();
-        }
+    /// <summary>
+    /// Updates an existing medical service based on the provided Id and medical service request.
+    /// </summary>
+    public async Task UpdateMedicalServiceAsync(Guid id, MedicalServiceRequest medicalServiceRequest)
+    {
+        var medicalService = await _medicalServiceRepository.GetByIdAsync(id);
+        var serviceCategory = await _serviceCategoryRepository.GetByIdAsync(medicalServiceRequest.ServiceCategoryId);
+        var specialization = await _specializatRepository.GetByIdAsync(medicalServiceRequest.SpecializationId);
 
-        public async Task<MedicalServiceEntity> GetMedicalServiceByIdAsync(Guid id)
-        {
-            return await _medicalServiceRepository.GetByIdAsync(id);
-        }
+        _mapper.Map(medicalServiceRequest, medicalService);
+        medicalService.ServiceCategory = serviceCategory;
+        medicalService.Specialization = specialization;
 
-        public async Task<IEnumerable<MedicalServiceEntity>> GetServicesBySpecializationIdAsync(Guid specializationId)
-        {
-            return await _medicalServiceRepository.GetBySpecializationIdAsync(specializationId);
-        }
+        await _medicalServiceRepository.UpdateAsync(medicalService);
 
-        public async Task<IEnumerable<MedicalServiceEntity>> GetAllActiveMedicalServicesAsync()
-        {
-            return await _medicalServiceRepository.GetAllActiveMedicalServicesAsync();
-        }
+        var medicalServiceDto = _mapper.Map<MedicalServiceDto>(medicalService);
+        await _rabbitMQService.PublishMessageAsync(medicalServiceDto, MedicalServiceQueuesEnum.UpdateMedicalService.ToString());
+    }
 
-        public async Task UpdateMedicalServiceAsync(Guid id, Guid serviceCategoryId, string serviceName, decimal price, Guid specializationId, bool isActive)
-        {
-            var serviceCategory = await _serviceCategoryRepository.GetByIdAsync(serviceCategoryId);
-            var specialization = await _specificationRepository.GetByIdAsync(specializationId);
+    /// <summary>
+    /// Deletes an medical service based on the provided Id.
+    /// </summary>
+    public async Task DeleteMedicalServiceAsync(Guid id)
+    {
+        var medicalService = await _medicalServiceRepository.GetByIdAsync(id);
+        await _medicalServiceRepository.DeleteAsync(medicalService);
 
-            var medicalService = new MedicalServiceEntity
-            {
-                Id = id,
-                ServiceCategory = serviceCategory,
-                ServiceName = serviceName,
-                Price = price,
-                Specialization = specialization,
-                IsActive = isActive
-            };
-
-            var validationErrors = _validationService.Validation(medicalService);
-
-            if (validationErrors.Count != 0)
-            {
-                throw new ValidationException(validationErrors);
-            }
-
-            await _medicalServiceRepository.UpdateAsync(medicalService);
-
-            var medicalServiceDto = _mapper.Map<MedicalServiceDto>(medicalService);
-            await _rabbitMQService.PublishMessageAsync(medicalServiceDto, RabbitMQQueues.UPDATE_MEDICAL_SERVICE_QUEUE);
-        }
-
-        public async Task DeleteMedicalServiceAsync(Guid id)
-        {
-            var medicalService = await _medicalServiceRepository.GetByIdAsync(id);
-            await _medicalServiceRepository.DeleteAsync(medicalService);
-
-            var medicalServiceDto = _mapper.Map<MedicalServiceDto>(medicalService);
-            await _rabbitMQService.PublishMessageAsync(medicalServiceDto, RabbitMQQueues.DELETE_MEDICAL_SERVICE_QUEUE);
-        }
+        var medicalServiceDto = _mapper.Map<MedicalServiceDto>(medicalService);
+        await _rabbitMQService.PublishMessageAsync(medicalServiceDto, MedicalServiceQueuesEnum.DeleteMedicalService.ToString());
     }
 }

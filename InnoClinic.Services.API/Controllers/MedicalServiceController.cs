@@ -1,99 +1,89 @@
-﻿using InnoClinic.Services.Application.Services;
+﻿using InnoClinic.Services.Core.Abstractions;
 using InnoClinic.Services.Core.Models.MedicalServiceModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InnoClinic.Services.API.Controllers
+namespace InnoClinic.Services.API.Controllers;
+
+[AllowAnonymous]
+[ApiController]
+[Route("api/[controller]")]
+public class MedicalServiceController(IMedicalServiceService medicalServiceService) : ControllerBase
 {
-    [AllowAnonymous]
-    [ApiController]
-    [Route("api/[controller]")]
-    public class MedicalServiceController : ControllerBase
+    private readonly IMedicalServiceService _medicalServiceService = medicalServiceService;
+
+    [Authorize(Roles = "Receptionist")]
+    [HttpPost]
+    public async Task<ActionResult> CreateMedicalServiceAsync([FromBody] MedicalServiceRequest medicalServiceRequest)
     {
-        private readonly IMedicalServiceService _medicalServiceService;
+        await _medicalServiceService.CreateMedicalServiceAsync(medicalServiceRequest);
 
-        public MedicalServiceController(IMedicalServiceService medicalServiceService)
-        {
-            _medicalServiceService = medicalServiceService;
-        }
+        return Ok();
+    }
 
-        [Authorize(Roles = "Receptionist")]
-        [HttpPost]
-        public async Task<ActionResult> CreateMedicalServiceAsync([FromBody] MedicalServiceRequest medicalServiceRequest)
-        {
-            await _medicalServiceService.CreateMedicalServiceAsync(medicalServiceRequest.ServiceCategoryId, 
-                medicalServiceRequest.ServiceName, medicalServiceRequest.Price, medicalServiceRequest.SpecializationId, 
-                medicalServiceRequest.IsActive);
+    [AllowAnonymous]
+    [HttpGet]
+    public async Task<ActionResult> GetAllMedicalServiceAsync()
+    {
+        return Ok(await _medicalServiceService.GetAllMedicalServiceAsync());
+    }
 
-            return Ok();
-        }
+    [AllowAnonymous]
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult> GetAllMedicalServiceAsync(Guid id)
+    {
+        return Ok(await _medicalServiceService.GetMedicalServiceByIdAsync(id));
+    }
 
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult> GetAllMedicalServiceAsync()
-        {
-            return Ok(await _medicalServiceService.GetAllMedicalServiceAsync());
-        }
+    [AllowAnonymous]
+    [HttpGet("services-by-specialization-id/{specializationId:guid}")]
+    public async Task<ActionResult> GetServicesBySpecializationIdAsync(Guid specializationId)
+    {
+        return Ok(await _medicalServiceService.GetServicesBySpecializationIdAsync(specializationId));
+    }
 
-        [AllowAnonymous]
-        [HttpGet("{id:guid}")]
-        public async Task<ActionResult> GetAllMedicalServiceAsync(Guid id)
-        {
-            return Ok(await _medicalServiceService.GetMedicalServiceByIdAsync(id));
-        }
+    [AllowAnonymous]
+    [HttpGet("all-services-by-category")]
+    public async Task<ActionResult> GetAllServicesByCategoryAsync()
+    {
+        var medicalServices = await _medicalServiceService.GetAllActiveMedicalServicesAsync();
 
-        [AllowAnonymous]
-        [HttpGet("services-by-specialization-id/{specializationId:guid}")]
-        public async Task<ActionResult> GetServicesBySpecializationIdAsync(Guid specializationId)
-        {
-            return Ok(await _medicalServiceService.GetServicesBySpecializationIdAsync(specializationId));
-        }
+        var response = medicalServices.Select(m => new MedicalServiceResponse(m.Id, m.ServiceCategory, m.ServiceName,
+            m.Price.ToString(), m.Specialization, m.IsActive));
 
-        [AllowAnonymous]
-        [HttpGet("all-services-by-category")]
-        public async Task<ActionResult> GetAllServicesByCategoryAsync()
-        {
-            var medicalServices = await _medicalServiceService.GetAllActiveMedicalServicesAsync();
+        var groupedServices = response
+            .GroupBy(service => service.ServiceCategory.CategoryName)
+            .Select(group => new
+            {
+                CategoryName = group.Key,
+                Services = group.ToList(),
+            });
 
-            var response = medicalServices.Select(m => new MedicalServiceResponse(m.Id, m.ServiceCategory, m.ServiceName,
-                m.Price.ToString(), m.Specialization, m.IsActive));
+        return Ok(groupedServices);
+    }
 
-            var groupedServices = response
-                .GroupBy(service => service.ServiceCategory.CategoryName)
-                .Select(group => new
-                {
-                    CategoryName = group.Key,
-                    Services = group.ToList(),
-                });
+    [AllowAnonymous]
+    [HttpGet("all-active-medical-services")]
+    public async Task<ActionResult> GetAllActiveMedicalServicesAsync()
+    {
+        return Ok(await _medicalServiceService.GetAllActiveMedicalServicesAsync());
+    }
 
-            return Ok(groupedServices);
-        }
+    [Authorize(Roles = "Receptionist")]
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult> UpdateMedicalServiceAsync(Guid id, [FromBody] MedicalServiceRequest medicalServiceRequest)
+    {
+        await _medicalServiceService.UpdateMedicalServiceAsync(id, medicalServiceRequest);
 
-        [AllowAnonymous]
-        [HttpGet("all-active-medical-services")]
-        public async Task<ActionResult> GetAllActiveMedicalServicesAsync()
-        {
-            return Ok(await _medicalServiceService.GetAllActiveMedicalServicesAsync());
-        }
+        return Ok();
+    }
 
-        [Authorize(Roles = "Receptionist")]
-        [HttpPut("{id:guid}")]
-        public async Task<ActionResult> UpdateMedicalServiceAsync(Guid id, [FromBody] MedicalServiceRequest medicalServiceRequest)
-        {
-            await _medicalServiceService.UpdateMedicalServiceAsync(id, medicalServiceRequest.ServiceCategoryId, 
-                medicalServiceRequest.ServiceName, medicalServiceRequest.Price, medicalServiceRequest.SpecializationId, 
-                medicalServiceRequest.IsActive);
+    [Authorize(Roles = "Receptionist")]
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> DeleteMedicalServiceAsync(Guid id)
+    {
+        await _medicalServiceService.DeleteMedicalServiceAsync(id);
 
-            return Ok();
-        }
-
-        [Authorize(Roles = "Receptionist")]
-        [HttpDelete("{id:guid}")]
-        public async Task<ActionResult> DeleteMedicalServiceAsync(Guid id)
-        {
-            await _medicalServiceService.DeleteMedicalServiceAsync(id);
-
-            return Ok();
-        }
+        return Ok();
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace InnoClinic.Services.Infrastructure.Jwt
+﻿namespace InnoClinic.Services.Infrastructure.Options.Jwt
 {
     /// <summary>
     /// Represents options for JSON Web Token (JWT) configuration.

@@ -1,67 +1,58 @@
-﻿using InnoClinic.Services.Core.Exceptions;
+﻿using AutoMapper;
+using InnoClinic.Services.Core.Abstractions;
 using InnoClinic.Services.Core.Models.ServiceCategoryModels;
-using InnoClinic.Services.DataAccess.Repositories;
 
-namespace InnoClinic.Services.Application.Services
+namespace InnoClinic.Services.Application.Services;
+
+/// <summary>
+/// Service for managing service category entities including creation, retrieval, updating, and deletion operations.
+/// </summary>
+/// <remarks>
+/// Initializes a new instance of the <see cref="ServiceCategoryService"/> class.
+/// </remarks>
+/// <param name="serviceCategoryRepository">The service category repository for data access.</param>
+/// <param name="mapper">The mapper for object mapping.</param>
+public class ServiceCategoryService(IServiceCategoryRepository serviceCategoryRepository, IMapper mapper) : IServiceCategoryService
 {
-    public class ServiceCategoryService : IServiceCategoryService
+    private readonly IServiceCategoryRepository _serviceCategoryRepository = serviceCategoryRepository;
+    private readonly IMapper _mapper = mapper;
+
+    /// <summary>
+    /// Creates a new service category based on the provided service category request.
+    /// </summary>
+    public async Task CreateServiceCategoryAsync(ServiceCategoryRequest serviceCategoryRequest)
     {
-        private readonly IServiceCategoryRepository _serviceCategoryRepository;
-        private readonly IValidationService _validationService;
+        var serviceCategory = _mapper.Map<ServiceCategoryEntity>(serviceCategoryRequest);
 
-        public ServiceCategoryService(IServiceCategoryRepository serviceCategoryRepository, IValidationService validationService)
-        {
-            _serviceCategoryRepository = serviceCategoryRepository;
-            _validationService = validationService;
-        }
+        await _serviceCategoryRepository.CreateAsync(serviceCategory);
+    }
 
-        public async Task CreateServiceCategoryAsync(string categoryName, int timeSlotSize)
-        {
-            var serviceCategory = new ServiceCategoryEntity
-            {
-                Id = Guid.NewGuid(),
-                CategoryName = categoryName,
-                TimeSlotSize = timeSlotSize
-            };
+    /// <summary>
+    /// Retrieves all service category.
+    /// </summary>
+    public async Task<IEnumerable<ServiceCategoryEntity>> GetAllServiceCategoryAsync()
+    {
+        return await _serviceCategoryRepository.GetAllAsync();
+    }
 
-            var validationErrors = _validationService.Validation(serviceCategory);
+    /// <summary>
+    /// Updates an existing service category based on the provided Id and service category request.
+    /// </summary>
+    public async Task UpdateServiceCategoryAsync(Guid id, ServiceCategoryRequest serviceCategoryRequest)
+    {
+        var serviceCategory = await _serviceCategoryRepository.GetByIdAsync(id);
 
-            if (validationErrors.Count != 0)
-            {
-                throw new ValidationException(validationErrors);
-            }
+        _mapper.Map(serviceCategoryRequest, serviceCategory);
 
-            await _serviceCategoryRepository.CreateAsync(serviceCategory);
-        }
+        await _serviceCategoryRepository.UpdateAsync(serviceCategory);
+    }
 
-        public async Task<IEnumerable<ServiceCategoryEntity>> GetAllServiceCategoryAsync()
-        {
-            return await _serviceCategoryRepository.GetAllAsync();
-        }
-
-        public async Task UpdateServiceCategoryAsync(Guid id, string categoryName, int timeSlotSize)
-        {
-            var serviceCategory = new ServiceCategoryEntity
-            {
-                Id = id,
-                CategoryName = categoryName,
-                TimeSlotSize = timeSlotSize
-            };
-
-            var validationErrors = _validationService.Validation(serviceCategory);
-
-            if (validationErrors.Count != 0)
-            {
-                throw new ValidationException(validationErrors);
-            }
-
-            await _serviceCategoryRepository.UpdateAsync(serviceCategory);
-        }
-
-        public async Task DeleteServiceCategoryAsync(Guid id)
-        {
-            var serviceCategory = await _serviceCategoryRepository.GetByIdAsync(id);
-            await _serviceCategoryRepository.DeleteAsync(serviceCategory);
-        }
+    /// <summary>
+    /// Deletes an service category based on the provided Id.
+    /// </summary>
+    public async Task DeleteServiceCategoryAsync(Guid id)
+    {
+        var serviceCategory = await _serviceCategoryRepository.GetByIdAsync(id);
+        await _serviceCategoryRepository.DeleteAsync(serviceCategory);
     }
 }
