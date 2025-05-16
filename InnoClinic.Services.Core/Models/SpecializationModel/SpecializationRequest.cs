@@ -13,4 +13,4 @@ public record SpecializationRequest(
     /// Gets a value indicating whether the specialization is active.
     /// </summary>
     bool IsActive
-);
+);  

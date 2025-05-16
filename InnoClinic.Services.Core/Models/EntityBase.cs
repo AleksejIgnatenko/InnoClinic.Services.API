@@ -8,5 +8,5 @@ public abstract class EntityBase
     /// <summary>
     /// Gets or sets the unique identifier of the entity.
     /// </summary>
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
 }

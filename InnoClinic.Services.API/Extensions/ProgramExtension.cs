@@ -32,10 +32,11 @@ public static class ProgramExtension
             .AddDbContext(builder.Configuration)
             .AddRepositories()
             .AddServices()
-            .AddSwaggerGen()
+            .AddCustomSwagger()
             .AddEndpointsApiExplorer()
             .AddJwtAuthentication(builder.Services.BuildServiceProvider().GetRequiredService<IOptions<JwtOptions>>())
             .AddMapperProfiles()
+            .AddFluentValidation()
             .AddControllers();
 
         return builder;
